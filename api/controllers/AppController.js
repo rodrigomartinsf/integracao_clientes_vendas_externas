@@ -1,4 +1,5 @@
-const AuthController = require('./AuthController')
+const AuthServiceController = require('./AuthServiceController')
+const ClienteServiceController = require('./ClienteServiceController')
 const ClienteController = require('./ClienteController')
 const db = require('../models')
 
@@ -18,37 +19,80 @@ class AppController {
   }
 
   async start() {
-    const auth = new AuthController()
+    const auth = new AuthServiceController()
     await auth.logon()
     const tokenAcesso = auth.getTokenAcesso()
     this.setTokenAcesso(tokenAcesso)
-    this.getClientesFromDatabase()
+    const clientesFromDb = await this.getClientesFromDatabase()
+    this.sendClientesToApi(clientesFromDb)
   }
 
   async getClientesFromDatabase() {
     const clientesFromDb = await db.clientes.findAll()
-    //Percorre a lista de clientes do banco de dados
-    for (let i = 0; i < clientesFromDb.length; i++) {
-      //Para cada cliente encontrado no banco de dados verificamos se ele ja existe no vendas externas
-      let tokenAcesso = this.getTokenAcesso()
-      const clienteFromApi = new ClienteController(clientesFromDb[i].cgc_cpf, tokenAcesso)
-      const clienteExiste = await clienteFromApi.verificaClienteExiste()
+    return clientesFromDb
+  }
 
-      //Busca os dados do tipo de negociação do cliente
-      const tipoNegociacao = await db.tipo_negociacao.findOne({
-        where: {
-          id_forma_pagamento_sankhya: clientesFromDb[i].prazo
+  async sendClientesToApi(clientesFromDb) {
+    try {
+      //Percorre a lista de clientes do banco de dados
+      for (let i = 0; i < clientesFromDb.length; i++) {
+        //Para cada cliente encontrado no banco de dados verificamos se ele ja existe no vendas externas
+        let tokenAcesso = this.getTokenAcesso()
+        const clienteFromApi = new ClienteServiceController(clientesFromDb[i].cgc_cpf, tokenAcesso)
+        const clienteExiste = await clienteFromApi.verificaClienteExiste()
+        const novoCliente = new ClienteController(clientesFromDb[i].codigo_parceiro, clientesFromDb[i].razao_social, clientesFromDb[i].nome_parceiro, clientesFromDb[i].tipo_pessoa, 
+          clientesFromDb[i].cgc_cpf, clientesFromDb[i].inscricao_estadual, clientesFromDb[i].data_nascimento, clientesFromDb[i].rota, 
+          clientesFromDb[i].prazo, clientesFromDb[i].cep, clientesFromDb[i].complemento, clientesFromDb[i].bairro, clientesFromDb[i].cidade, 
+          clientesFromDb[i].tabela_preco, clientesFromDb[i].bloquear, clientesFromDb[i].ativo, clientesFromDb[i].endereco, clientesFromDb[i].numero, 
+          clientesFromDb[i].latitude, clientesFromDb[i].longitude, clientesFromDb[i].codigo_ve)
+
+        //Busca os dados do tipo de negociação do cliente
+        const tipoNegociacao = await db.tipo_negociacao.findOne({
+          where: {
+            id_forma_pagamento_sankhya: novoCliente.getPrazo()
+          }
+        })
+        
+        //Busca os a Rota do cliente
+        const rota = await db.rotas.findOne({
+          where: {
+            id_rota_sankhya: novoCliente.getRota()
+          }
+        })
+
+        //Busca a Tabela de Preço do cliente
+        const tabelaPreco = await db.tabela_preco.findOne({
+          where: {
+            id_tabela_preco_sankhya: novoCliente.getTabelaPreco()
+          }
+        })
+        console.log(novoCliente.getNomeParceiro(), clienteExiste, tipoNegociacao.forma_pag_desc, rota.rota_desc, tabelaPreco.tabela_preco_desc)
+        //Atualiza dados
+        const rotaVendasExternas = await db.rotas.findOne({where: {id_rota_sankhya: novoCliente.getRota()}})
+        const tipoNegociacaoVendasExternas = await db.tipo_negociacao.findOne({where: {id_forma_pagamento_sankhya: novoCliente.getPrazo()}})
+        const tabelaPrecoVendasExternas = await db.tabela_preco.findOne({where: {id_tabela_preco_sankhya: novoCliente.getTabelaPreco()}})
+        novoCliente.setRotaId(rotaVendasExternas.id_rota_ve)
+        novoCliente.setIdFormaPagamento(tipoNegociacaoVendasExternas.id_forma_pagamento_ve)
+        novoCliente.setIdCondicaoPagamento(tipoNegociacao.id_condicao_pagamento_ve)
+        novoCliente.setIdTabelaPreco(tabelaPrecoVendasExternas.id_tabela_preco_ve)
+        //Verifica se o cliente existe
+        if(clienteExiste){
+          // Atualiza
+          console.log('ATUALIZANDO', novoCliente.getNomeParceiro())
+          clienteFromApi.update(novoCliente)
         }
-      })
-      
-      //Busca os a Rota do cliente
-      const rota = await db.rotas.findOne({
-        where: {
-          id_rota_sankhya: clientesFromDb[i].rota
+        else{
+          console.log('CADASTRANDO', novoCliente.getNomeParceiro())
+          //Cadastra
+          const idClienteCadastrado = await clienteFromApi.insert(novoCliente)
+          novoCliente.setCodigoVendasExternas(idClienteCadastrado)
+          await db.clientes.update(novoCliente, {where: {codigo_parceiro: novoCliente.getCodigoParceiro()}})
         }
-      })
-      console.log(clientesFromDb[i].nome_parceiro, clienteExiste, tipoNegociacao.forma_pag_desc, rota.rota_desc)
+      }
+    } catch (error) {
+      console.log(error)
     }
+    
   }
 
 }
