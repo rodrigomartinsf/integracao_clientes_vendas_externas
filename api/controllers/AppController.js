@@ -41,40 +41,20 @@ class AppController {
         const clienteFromApi = new ClienteServiceController(clientesFromDb[i].cgc_cpf, tokenAcesso)
         const clienteExiste = await clienteFromApi.verificaClienteExiste()
         const novoCliente = new ClienteController(clientesFromDb[i].codigo_parceiro, clientesFromDb[i].razao_social, clientesFromDb[i].nome_parceiro, clientesFromDb[i].tipo_pessoa, 
-          clientesFromDb[i].cgc_cpf, clientesFromDb[i].inscricao_estadual, clientesFromDb[i].data_nascimento, clientesFromDb[i].rota, 
+          clientesFromDb[i].cgc_cpf, clientesFromDb[i].inscricao_estadual, clientesFromDb[i].data_nascimento, clientesFromDb[i].rotaId, 
           clientesFromDb[i].prazo, clientesFromDb[i].cep, clientesFromDb[i].complemento, clientesFromDb[i].bairro, clientesFromDb[i].cidade, 
           clientesFromDb[i].tabela_preco, clientesFromDb[i].bloquear, clientesFromDb[i].ativo, clientesFromDb[i].endereco, clientesFromDb[i].numero, 
           clientesFromDb[i].latitude, clientesFromDb[i].longitude, clientesFromDb[i].codigo_ve)
 
-        //Busca os dados do tipo de negociação do cliente
-        const tipoNegociacao = await db.tipo_negociacao.findOne({
-          where: {
-            id_forma_pagamento_sankhya: novoCliente.getPrazo()
-          }
-        })
-        
-        //Busca os a Rota do cliente
-        const rota = await db.rotas.findOne({
-          where: {
-            id_rota_sankhya: novoCliente.getRota()
-          }
-        })
-
-        //Busca a Tabela de Preço do cliente
-        const tabelaPreco = await db.tabela_preco.findOne({
-          where: {
-            id_tabela_preco_sankhya: novoCliente.getTabelaPreco()
-          }
-        })
-        console.log(novoCliente.getNomeParceiro(), clienteExiste, tipoNegociacao.forma_pag_desc, rota.rota_desc, tabelaPreco.tabela_preco_desc)
         //Atualiza dados
-        const rotaVendasExternas = await db.rotas.findOne({where: {id_rota_sankhya: novoCliente.getRota()}})
+        const rotaVendasExternas = await db.rotas.findOne({where: {id_rota_sankhya: novoCliente.getRotaId()}})
         const tipoNegociacaoVendasExternas = await db.tipo_negociacao.findOne({where: {id_forma_pagamento_sankhya: novoCliente.getPrazo()}})
         const tabelaPrecoVendasExternas = await db.tabela_preco.findOne({where: {id_tabela_preco_sankhya: novoCliente.getTabelaPreco()}})
-        novoCliente.setRotaId(rotaVendasExternas.id_rota_ve)
+        novoCliente.setRotaVendasExternas(rotaVendasExternas.id_rota_ve)
         novoCliente.setIdFormaPagamento(tipoNegociacaoVendasExternas.id_forma_pagamento_ve)
-        novoCliente.setIdCondicaoPagamento(tipoNegociacao.id_condicao_pagamento_ve)
+        novoCliente.setIdCondicaoPagamento(tipoNegociacaoVendasExternas.id_condicao_pagamento_ve)
         novoCliente.setIdTabelaPreco(tabelaPrecoVendasExternas.id_tabela_preco_ve)
+
         //Verifica se o cliente existe
         if(clienteExiste){
           // Atualiza

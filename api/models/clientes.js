@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     cgc_cpf: DataTypes.STRING,
     inscricao_estadual: DataTypes.STRING,
     data_nascimento: DataTypes.DATEONLY,
-    rota: DataTypes.INTEGER,
+    rotaId: DataTypes.INTEGER,
     prazo: DataTypes.STRING,
     cep: DataTypes.STRING,
     endereco: DataTypes.STRING,
@@ -41,5 +41,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'clientes',
   });
+  
   return Clientes;
 };

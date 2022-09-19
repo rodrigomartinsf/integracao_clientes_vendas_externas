@@ -1,7 +1,7 @@
 
 class ClienteController{
 
-  constructor(codigoParceiro, razao_social, nome_parceiro, tipo_pessoa, cgc_cpf, inscricao_estadual, data_nascimento, rota, prazo, cep, complemento, 
+  constructor(codigoParceiro, razao_social, nome_parceiro, tipo_pessoa, cgc_cpf, inscricao_estadual, data_nascimento, rotaId, prazo, cep, complemento, 
               bairro, cidade, tabela_preco, bloquear, ativo, endereco, numero, latitude, longitude, codigo_ve) {
     this.codigo_parceiro =  codigoParceiro
     this.razao_social = razao_social
@@ -10,8 +10,8 @@ class ClienteController{
     this.cgc_cpf = cgc_cpf
     this.inscricao_estadual = inscricao_estadual
     this.data_nascimento = data_nascimento
-    this.rota = rota
-    this.rotaId = null
+    this.rotaId = rotaId
+    this.rotaVendasExternas = null
     this.prazo = prazo
     this.id_forma_pagamento = null
     this.id_condicao_pagamento = null
@@ -60,8 +60,8 @@ class ClienteController{
     return this.data_nascimento
   }
 
-  getRota() {
-    return this.rota
+  getRotaVendasExternas() {
+    return this.rotaVendasExternas
   }
 
   getRotaId() {
@@ -166,8 +166,8 @@ setDataNascimento(newValue) {
   this.data_nascimento = newValue
 }
 
-setRota(newValue) {
-  this.rota = newValue
+setRotaVendasExternas(newValue) {
+  this.rotaVendasExternas = newValue
 }
 
 setRotaId(newValue) {

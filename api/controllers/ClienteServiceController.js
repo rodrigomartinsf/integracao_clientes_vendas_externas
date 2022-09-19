@@ -49,7 +49,7 @@ class ClienteServiceController {
     data['INTERNET']        = ''
     data['ESTADO_CIVIL']    = 'S' 
     data['NASCIMENTO_CONSTITUICAO'] = novoCliente.getDataNascimento() == undefined ? '2022-01-01' : novoCliente.getDataNascimento()
-    data['COMERCIAL_VENDA'] = {'REPRESENTANTE': novoCliente.getRotaId(), 
+    data['COMERCIAL_VENDA'] = {'REPRESENTANTE': novoCliente.getRotaVendasExternas(), 
                                'MEIO_PAGAMENTO': novoCliente.getIdFormaPagamento(), 
                                'CONDICAO_PAGAMENTO': novoCliente.getIdCondicaoPagamento(), 
                                'SITUACAO_CADASTRO': novoCliente.getAtivo() == 'S' ?  1 : 3, 
@@ -94,7 +94,7 @@ class ClienteServiceController {
     data['INTERNET']        = ''
     data['ESTADO_CIVIL']    = 'S' 
     data['NASCIMENTO_CONSTITUICAO'] = novoCliente.getDataNascimento() == undefined ? '2022-01-01' : novoCliente.getDataNascimento()
-    data['COMERCIAL_VENDA'] = {'REPRESENTANTE': novoCliente.getRotaId(), 
+    data['COMERCIAL_VENDA'] = {'REPRESENTANTE': novoCliente.getRotaVendasExternas(), 
                                'MEIO_PAGAMENTO': novoCliente.getIdFormaPagamento(), 
                                'CONDICAO_PAGAMENTO': novoCliente.getIdCondicaoPagamento(), 
                                'SITUACAO_CADASTRO': novoCliente.getAtivo() == 'S' ?  1 : 3, 
