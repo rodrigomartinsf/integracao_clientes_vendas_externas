@@ -1,6 +1,7 @@
 const AuthServiceController = require('./AuthServiceController')
 const ClienteServiceController = require('./ClienteServiceController')
 const ClienteController = require('./ClienteController')
+const RabbitmqServer = require('../rabbitmq/rabbitmqServer')
 const db = require('../models')
 
 class AppController {
@@ -19,12 +20,16 @@ class AppController {
   }
 
   async start() {
+    const rabbitmqServer = new RabbitmqServer()
+    await rabbitmqServer.start()
+    await rabbitmqServer.subscriber('clientes')
+
     const auth = new AuthServiceController()
     await auth.logon()
     const tokenAcesso = auth.getTokenAcesso()
     this.setTokenAcesso(tokenAcesso)
-    const clientesFromDb = await this.getClientesFromDatabase()
-    this.sendClientesToApi(clientesFromDb)
+    //const clientesFromDb = await this.getClientesFromDatabase()
+    //this.sendClientesToApi(clientesFromDb)
   }
 
   async getClientesFromDatabase() {
